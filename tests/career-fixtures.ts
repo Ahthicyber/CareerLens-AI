@@ -1,0 +1,10 @@
+import {type InterviewAnswer,type InterviewSetup,feedbackSchema,roadmapSchema} from '../lib/ai/career-schemas';
+import {evaluateInterview,prepareRoadmap} from '../lib/career';
+export const setup:InterviewSetup={role:'Frontend Developer',level:'Junior',category:'Mixed',difficulty:'Medium',count:5};
+export const answers:InterviewAnswer[]=Array.from({length:5},(_,i)=>({id:`q${i+1}`,question:`How would you test feature ${i+1}?`,category:'Technical',answer:'I would write a test that exercises the feature through its public interface.'}));
+export const feedback=feedbackSchema.parse({summary:'A useful starting point for practice.',feedback:answers.map(a=>({questionId:a.id,accuracy:80,clarity:70,completeness:60,feedback:'Explain one concrete test case.',improvements:['Add an edge case.'],exampleAnswer:'I would verify the main interaction and an error condition.'})),recommendations:['Practice giving concrete examples.']});
+export const interview={setup,answers,evaluation:evaluateInterview(answers,feedback)};
+export const roadmapInput={skills:'React, JavaScript and HTML',role:'Frontend Developer',level:'Junior',hoursPerWeek:5,weeks:2,consent:true};
+export const rawRoadmap=roadmapSchema.parse({summary:'Build confidence with testing.',currentAssessment:'Basic React experience.',missingSkills:['Testing'],priorities:['Test fundamentals'],milestones:Array.from({length:2},(_,i)=>({week:i+1,title:`Milestone ${i+1}`,hours:4,objectives:['Write a passing test'],topics:['Test structure'],project:'Test a task planner.',interviewTopics:['Explain testing choices.'],tasks:[{id:`ai-${i}`,title:'Write a task creation test.',completed:false},{id:`ai-${i}-2`,title:'Document the test decision.',completed:false}]}))});
+export const roadmap=prepareRoadmap(rawRoadmap,{role:roadmapInput.role,hoursPerWeek:5,weeks:2});
+export const cover={letter:'Dear hiring team,\nI am applying for the Frontend Developer role. My supplied React project experience is a foundation I would like to build on. Thank you for considering my application.',notes:['Uses supplied project experience.'],tone:'Professional',jobTitle:'Frontend Developer',company:'Example Company'};

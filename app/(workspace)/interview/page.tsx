@@ -1,2 +1,2 @@
-import PhasePreview from '@/components/phase-preview';
-export default function Page(){return <PhasePreview kind="interview"/>;}
+import Interview from '@/components/career/interview';
+export default function Page(){return <Interview/>;}

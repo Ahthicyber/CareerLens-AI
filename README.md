@@ -2,7 +2,7 @@
 
 Your next career move, powered by AI.
 
-A career copilot portfolio project built with Next.js, React and TypeScript. This delivery implements **Phases 1 and 2** of the supplied brief. Resume analysis and job matching support real OpenAI requests; public demos require no keys. Other tools are clearly labeled interactive previews.
+A career copilot portfolio project built with Next.js, React and TypeScript. This delivery implements all five career tools plus Supabase authentication and persistence. Resume analysis and job matching support real OpenAI requests; public demos at `/demo` require no keys. Public samples remain separate from personalized results. See [PHASE3.md](PHASE3.md) for the new tools and second migration.
 
 **Live demo:** add your Vercel URL after deployment. **Screenshots:** run locally, capture `/`, `/dashboard`, and a sample `/resume` report, and add the real images under `public/screenshots/`.
 
@@ -11,40 +11,45 @@ A career copilot portfolio project built with Next.js, React and TypeScript. Thi
 - Responsive landing page, dashboard, navigation and persistent light/dark preference.
 - PDF resume extraction (5 MB limit), pasted text, explicit provider consent.
 - Resume scores, skill badges, strengths, gaps, section feedback and grounded rewrites.
+- Role-specific mock interviews with deterministic rubric scoring and saved per-question feedback.
+- Grounded, editable cover letters with tone controls, copy, download and save.
+- Weekly roadmaps with budget checks, saved milestones and persistent task completion.
 - Job-match evidence and component assessments with deterministic weighted scoring.
 - Fixed fictional samples, clearly separated from live AI. Failures never substitute samples.
 - Explicit browser-local report saving, searchable/filterable history, deletion, JSON and print-to-PDF export.
-- Server-side access gate and persistent Upstash rate limit for paid requests.
+- Supabase email/password sign-in, Google OAuth entry/callback, password reset and logout.
+- Protected account routes, explicit cloud reports/resume text, profile settings and account deletion.
+- Persistent per-user Upstash rate limits, usage events and ten-table PostgreSQL migration with RLS.
 
 ## Stack and architecture
 
-Next.js App Router, strict TypeScript, React, Tailwind CSS, an owned shadcn/ui-style Button using Radix Slot/CVA, Lucide, Motion, Recharts, Zod, OpenAI SDK, pdf-parse, Upstash, Vitest and ESLint. Installed exact versions are locked in package-lock.json. Supabase is reserved for Phase 4, not implemented yet.
+Next.js App Router, strict TypeScript, React, Tailwind CSS, an owned shadcn/ui-style Button using Radix Slot/CVA, Lucide, Motion, Recharts, Zod, OpenAI SDK, pdf-parse, Upstash, Vitest and ESLint. Installed exact versions are locked in package-lock.json. Supabase Auth/SSR and PostgreSQL provide verified sessions, private records, and row-level ownership. See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) to apply the migration and configure your project.
 
 ```text
-Browser → Next.js pages → upload route → in-memory PDF extraction
-                       → analyze route → access gate → input validation
-                                       → Upstash usage limit
-                                       → OpenAI structured responses
-                                       → Zod validation → weighted score → report
-Explicit Save → browser localStorage (no cloud sync)
-Demo button → deterministic fictional fixtures (no provider request)
+Browser -> Next.js -> verified Supabase session -> input validation
+                   -> PDF text extraction (in memory)
+                   -> per-user Upstash quota -> usage event
+                   -> OpenAI structured responses -> Zod -> report
+Explicit account Save -> Supabase PostgreSQL with RLS
+Demo Save -> separate browser localStorage
 ```
 
 ## Run locally
 
 Use Node.js 22.16+ or a supported newer LTS (Node 24 used for development) and npm.
 
-```sh
-npm ci
-cp .env.example .env.local
-npm run dev
+```powershell
+Set-Location 'D:\Projects\CareerLens AI'
+npm.cmd ci
+if (!(Test-Path .env.local)) { Copy-Item .env.example .env.local }
+npm.cmd run dev
 ```
 
-On Windows PowerShell use `npm.cmd` if script execution is restricted, and `Copy-Item .env.example .env.local`. Open http://localhost:3000. The demo needs no environment variables.
+Use npm.cmd in Windows PowerShell to avoid execution-policy errors. On macOS/Linux, use npm and copy .env.example only if .env.local does not already exist. Open http://localhost:3000; the public demo is at /demo and needs no credentials. Private workspace routes require sign-in.
 
-For live AI configure `OPENAI_API_KEY`, `OPENAI_MODEL`, a long random `AI_ACCESS_TOKEN`, and `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`. Enter the owner token into the tool form; it stays in component memory. Never distribute this shared token publicly. API endpoints refuse requests if the token or persistent limiter configuration is missing. No secret uses a `NEXT_PUBLIC_` prefix.
+For accounts, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY` is also supported). Follow [SUPABASE_SETUP.md](SUPABASE_SETUP.md) to run the SQL migration and allow callback URLs. Without those settings, authentication shows a configuration error; demo pages still work.
 
-`NEXT_PUBLIC_APP_URL` documents the deployment origin. Supabase public variables are placeholders for Phase 4 and currently unused. Optional Gemini support is not implemented.
+For live AI configure `OPENAI_API_KEY`, `OPENAI_MODEL`, `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. Requests verify the Supabase user, limit their UUID to ten attempts per hour, and record a usage event. The old owner access token is no longer used. Missing configuration/migrations fail closed. No server secret uses a `NEXT_PUBLIC_` prefix.
 
 ## AI and scoring
 
@@ -52,7 +57,7 @@ For live AI configure `OPENAI_API_KEY`, `OPENAI_MODEL`, a long random `AI_ACCESS
 
 Job compatibility uses **required skills 40%, experience 25%, preferred skills 15%, education 10%, keywords/responsibilities 10%**. The AI supplies independent component assessments and evidence. `lib/scoring.ts` computes the final rounded weighted average. A category is inapplicable only when the job omits it. Applicable categories with no resume evidence remain scored gaps. Inapplicable weights are excluded and remaining weights normalized; all inapplicable returns zero. These scores do not predict hiring outcomes. ATS scores are unofficial AI estimates.
 
-The global live quota is ten attempts per sliding hour, persisted in Upstash. Failed provider calls consume an attempt. Upstash failures fail closed. Authenticated per-user quota and detailed database usage events remain Phase 4 work.
+The live quota is ten attempts per user per sliding hour, persisted in Upstash. Failed provider calls consume an attempt. Upstash failures fail closed. Requests record a feature usage event in Supabase before calling the provider; no resume text is included in usage records.
 
 ## Tests
 
@@ -63,30 +68,32 @@ npm run test
 npm run build
 ```
 
-Tests cover input/file restrictions, deterministic scoring and missing categories, schema validation, fixed demo data, endpoint authorization/configuration, usage limits and provider errors. Provider tests mock paid services. Test results do not establish real provider reliability or Supabase authorization. Live credentials are not included.
+Tests cover input/file restrictions, deterministic scoring and missing categories, schema validation, fixed demo data, endpoint authorization/configuration, usage limits and provider errors. Provider tests mock paid services. Tests also execute the full migration in local PostgreSQL (PGlite), verify RLS on all ten tables, reject forged ownership/cross-owner references, and verify self-only deletion cascades. They do not establish real provider reliability or validate a hosted email/OAuth flow. Live credentials are not included.
 
 ## Deploy with your accounts
 
 1. Create an empty GitHub repository in your account. Do not add environment files, resumes, credentials or saved personal reports.
 2. From this folder run `git init`, `git add .`, `git commit -m "Build CareerLens AI phases 1 and 2"`, `git branch -M main`, `git remote add origin YOUR_REPOSITORY_URL`, then `git push -u origin main`. Review staged files before committing.
-3. For the current MVP, Supabase is not required. For Phase 4, create a Supabase project and implement/apply reviewed migrations for profiles, resumes, resume_analyses, job_matches, interview_sessions, interview_answers, cover_letters, career_roadmaps, roadmap_tasks and usage_events, with RLS and ownership checks before connecting real user data. No database setup is claimed complete here.
-4. During Phase 4, configure the Supabase Auth site URL to your deployed origin and redirect allowlist to your actual application callback routes. Add Google OAuth provider credentials and its Supabase callback URL. The current app does not have an OAuth callback or password-reset flow.
+3. Create a Supabase project and apply `supabase/migrations/202611120001_career_workspace.sql` in SQL Editor. This creates all ten requested tables and their ownership policies. Then apply `supabase/migrations/202611120002_career_tools.sql` to enable transactional interview/roadmap saves and progress updates. Detailed instructions are in [SUPABASE_SETUP.md](SUPABASE_SETUP.md).
+4. Configure your Supabase Auth site URL and app `/auth/callback` redirects for local and production origins. Enable Google with your own Google Cloud OAuth client if desired. Email confirmation and recovery use PKCE and must be opened in the initiating browser.
 5. Import the repository into Vercel, choose the Next.js preset and npm. The default `npm run build` is supported. Do not use a static export: PDF extraction and live AI need Node route handlers.
-6. Add the environment values listed above in Vercel. Use a separate Upstash database/token as appropriate. Keep the shared owner access token secret. Without live configuration the public demo still works.
+6. Add the environment values listed above in Vercel. Use a separate Upstash database/token as appropriate. Add the Supabase project URL and publishable key. Without live configuration the public demo still works.
 7. Deploy and set `NEXT_PUBLIC_APP_URL` to the deployed URL. If you change environment values, redeploy.
-8. Test the landing page, theme toggle, dashboard, sample reports, history saving/deletion, PDF extraction, unauthorized live access, and a consented real analysis. Check that a provider outage shows an error. Add hosting firewall/traffic controls for the public extraction endpoint before broad release.
+8. Test the landing page, theme toggle, dashboard, sample reports, history saving/deletion, PDF extraction, unauthorized live access, and a consented real analysis. Check that a provider outage shows an error. Add hosting firewall/traffic controls for the authenticated extraction endpoint before broad release.
 
 ## Privacy and limitations
 
-No uploaded PDFs are stored. Text exists in request memory and browser component state. Saved reports can include personal information; local storage is readable by this browser profile and is not encrypted account storage. Save only on trusted devices. Clear reports in Settings. See `/privacy` for the in-app notice. Provider API data-retention policies still apply despite `store: false`.
+No uploaded PDFs are stored. Text exists in request memory and browser component state. Saved reports can include personal information; demo local storage is readable by this browser profile. Signed-in reports are private Supabase rows under RLS. Save only on trusted devices. Clear device reports in demo Settings, individual cloud reports in History, or all account data by deleting the account in private Settings. See `/privacy` for the in-app notice. Provider API data-retention policies still apply despite `store: false`.
 
 Only text-based PDFs are supported; no OCR and no password input. PDF parsing is synchronous request work, capped by upload size and deployment timeouts. PDFs over 25 pages are rejected after extraction; unusual files can still exhaust resources, so hosting controls matter. Vercel plan request-size limits may be lower than the app’s 5 MB cap; if uploads are rejected by the platform, use pasted text. Production deployments should align the UI limit with their platform or adopt direct private uploads with immediate deletion.
 
-No Supabase auth, cloud persistence, account deletion, email, OAuth, Gemini provider or live Phase 3 tools yet. Dashboard trend data is illustrative, not calculated from saved history. Job matching accepts pasted resume text or a new upload; selecting a previous analysis is future work. JSON and browser print are supported exports, without a custom PDF report engine. No deployment or GitHub publication has been performed. Browser QA and live provider testing must be reported separately from automated checks.
+Supabase accounts and cloud reports are implemented, but the owner must apply the migration and configure email/Google in the dashboard. The supplied public key was accepted by a read-only project check; email confirmation is enabled, Google is disabled, and the tables are not yet applied. Real sign-up/email recovery/OAuth have not been exercised by the agent.
+
+Interview, cover letter and roadmap tools now support live generation, validated output and explicit saves. Apply the second migration before saving interviews or roadmaps. The private dashboard includes saved interview scores; public demo trend data is illustrative. Cloud history returns up to 100 newest items per source. Reports and original resume text are saved separately. JSON and browser print/PDF exports are supported. No external deployment or paid AI call was performed; browser visual QA is unverified.
 
 ## Future work
 
-Complete Phases 3–5; add real user ownership and RLS tests, cloud reports, authenticated PDF endpoints, interview answer persistence, roadmap task persistence, end-to-end browser tests, actual screenshots and deployment monitoring.
+Add hosted email/OAuth and browser end-to-end tests, real provider evaluations, history pagination, dashboard trend charts, autosaved interview drafts, screenshots and deployment monitoring.
 
 ## License
 

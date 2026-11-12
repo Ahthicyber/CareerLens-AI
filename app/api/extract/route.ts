@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { validatePdf } from '@/lib/validation';
+import { authenticatedClient } from '@/lib/supabase/server';
+import { sameOrigin } from '@/lib/auth';
 export const runtime='nodejs';
 export const maxDuration=30;
 export async function POST(request:Request){
+ if(!sameOrigin(request))return NextResponse.json({error:'Invalid request origin.'},{status:403});
+ if(!await authenticatedClient())return NextResponse.json({error:'Sign in to upload your resume. Demo samples need no upload.'},{status:401});
  try{
  if(Number(request.headers.get('content-length'))>5*1024*1024+20000)return NextResponse.json({error:'Choose a PDF smaller than 5 MB.'},{status:413});
  const form=await request.formData();const file=form.get('file');

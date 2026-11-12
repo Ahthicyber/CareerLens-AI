@@ -1,2 +1,2 @@
-import Overview from '@/components/overview';
-export default function Page(){return <Overview/>;}
+import AccountOverview from '@/components/account-overview';
+export default function Page(){return <AccountOverview/>;}

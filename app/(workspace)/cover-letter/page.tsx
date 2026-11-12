@@ -1,2 +1,2 @@
-import PhasePreview from '@/components/phase-preview';
-export default function Page(){return <PhasePreview kind="cover-letter"/>;}
+import CoverLetter from '@/components/career/cover-letter';
+export default function Page(){return <CoverLetter/>;}
