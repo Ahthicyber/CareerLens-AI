@@ -1,0 +1,5 @@
+'use client';
+import { useState } from 'react';
+import { ThemeToggle } from '@/components/shared';
+import { Button } from '@/components/ui/button';
+export default function Page(){const[status,setStatus]=useState('');return <><div className="page-title"><div><span className="eyebrow">MAKE ROOM FOR WHAT’S NEXT</span><h1>Your workspace settings.</h1><p>This Phase 2 workspace uses browser storage, without an account.</p></div></div><div className="card"><h3>Appearance</h3><p>Choose light or dark mode.</p><ThemeToggle/></div><div className="card"><h3>Your data, your choice.</h3><p>Delete reports explicitly saved on this device. Uploaded PDF files are never retained by this app.</p><Button variant="outline" onClick={()=>{if(confirm('Delete all reports saved on this device?')){try{localStorage.removeItem('careerlens-reports');setStatus('All saved reports have been deleted.');}catch{setStatus('Browser storage could not be cleared. Use your browser’s site data settings.');}}}}>Delete all saved reports</Button><p role="status">{status}</p></div></>;}

@@ -1,0 +1,10 @@
+import { z } from 'zod';
+export const score = z.number().min(0).max(100);
+const list = z.array(z.string());
+export const resumeSchema = z.object({ overall: score, ats: score, summary:z.string(), technicalSkills:list, softSkills:list, education:z.string(), experience:z.string(), strengths:list, weaknesses:list, missingInformation:list, keywords:list, recommendations:list, sections:z.array(z.object({name:z.string(),score,feedback:z.string()})), rewrites:z.array(z.object({original:z.string(),improved:z.string()})) });
+export const categories = ['required','experience','preferred','education','alignment'] as const;
+export const assessment = z.object({score,applicable:z.boolean(),evidence:z.string()});
+export const matchSchema = z.object({summary:z.string(),matchedSkills:z.array(z.object({skill:z.string(),evidence:z.string()})),missingRequired:list,missingPreferred:list,keywords:list,recommendations:list,learningPriorities:list,categories:z.object({required:assessment,experience:assessment,preferred:assessment,education:assessment,alignment:assessment})});
+export const inputSchema = z.object({resume:z.string().trim().min(100,'Add at least 100 characters of resume text.').max(24000),jobTitle:z.string().trim().max(160).optional(),company:z.string().trim().max(160).optional(),description:z.string().trim().max(16000).optional(),consent:z.literal(true)});
+export type ResumeReport = z.infer<typeof resumeSchema>;
+export type MatchReport = z.infer<typeof matchSchema> & {overall:number};
