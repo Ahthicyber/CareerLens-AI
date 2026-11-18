@@ -49,6 +49,8 @@ npm.cmd run dev
 
 Restart an already-running server after changing environment values. Visit `http://localhost:3000/signup`, register your own account, confirm the email, and sign in. Anonymous visitors are redirected from private workspace routes to `/login`. `/demo` and its tools remain public even without credentials.
 
+On Vercel, add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or the legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY`) under **Project Settings → Environment Variables**. Select **Production** for the public deployment and **Preview** if you also use preview deployments. Redeploy after saving. Next.js embeds these values into the sign-up page's JavaScript at build time.
+
 ## 5. Verify with your own account
 
 1. Sign up and verify your email, then sign in at `/login`.
