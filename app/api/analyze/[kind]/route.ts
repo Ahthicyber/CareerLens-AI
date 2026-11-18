@@ -15,7 +15,7 @@ export async function POST(request:Request,{params}:{params:Promise<{kind:string
  if(!sameOrigin(request))return NextResponse.json({error:'Invalid request origin.'},{status:403});
  const auth=await authenticatedClient();
  if(!auth)return NextResponse.json({error:'Sign in to use live AI. Public demo needs no account.'},{status:401});
- if(!process.env.OPENAI_API_KEY || !process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN)return NextResponse.json({error:'Live AI is not configured. Set OpenAI and Upstash credentials; demo remains available.'},{status:503});
+ if(!process.env.GROQ_API_KEY || !process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN)return NextResponse.json({error:'Live AI is not configured. Set Groq and Upstash credentials; demo remains available.'},{status:503});
  try {
  if(Number(request.headers.get('content-length'))>70000)return NextResponse.json({error:'Request too large.'},{status:413});
  const raw=await request.text(); if(raw.length>70000)return NextResponse.json({error:'Request too large.'},{status:413});

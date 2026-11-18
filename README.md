@@ -49,7 +49,7 @@ Use npm.cmd in Windows PowerShell to avoid execution-policy errors. On macOS/Lin
 
 For accounts, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY` is also supported). Follow [SUPABASE_SETUP.md](SUPABASE_SETUP.md) to run the SQL migration and allow callback URLs. Without those settings, authentication shows a configuration error; demo pages still work.
 
-For live AI configure `OPENAI_API_KEY`, `OPENAI_MODEL`, `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. Requests verify the Supabase user, limit their UUID to ten attempts per hour, and record a usage event. The old owner access token is no longer used. Missing configuration/migrations fail closed. No server secret uses a `NEXT_PUBLIC_` prefix.
+For live AI configure `GROQ_API_KEY`, optional `GROQ_MODEL` (defaults to `openai/gpt-oss-120b`), `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. Requests verify the Supabase user, limit their UUID to ten attempts per hour, and record a usage event. The old owner access token is no longer used. Missing configuration/migrations fail closed. No server secret uses a `NEXT_PUBLIC_` prefix.
 
 ## AI and scoring
 
