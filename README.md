@@ -4,7 +4,7 @@ Your next career move, powered by AI.
 
 A career copilot portfolio project built with Next.js, React and TypeScript. This delivery implements all five career tools plus Supabase authentication and persistence. Resume analysis and job matching support real OpenAI requests; public demos at `/demo` require no keys. Public samples remain separate from personalized results. See [PHASE3.md](PHASE3.md) for the new tools and second migration.
 
-**Live demo:** add your Vercel URL after deployment. **Screenshots:** run locally, capture `/`, `/dashboard`, and a sample `/resume` report, and add the real images under `public/screenshots/`.
+For a credential-free walkthrough, run the app and open [the demo dashboard](http://localhost:3000/demo) or [the sample resume analyzer](http://localhost:3000/demo/resume).
 
 ## Features
 
@@ -72,8 +72,8 @@ Tests cover input/file restrictions, deterministic scoring and missing categorie
 
 ## Deploy with your accounts
 
-1. Create an empty GitHub repository in your account. Do not add environment files, resumes, credentials or saved personal reports.
-2. From this folder run `git init`, `git add .`, `git commit -m "Build CareerLens AI phases 1 and 2"`, `git branch -M main`, `git remote add origin YOUR_REPOSITORY_URL`, then `git push -u origin main`. Review staged files before committing.
+1. Use the existing GitHub remote or connect your own repository.
+2. Review and push the release commit. Keep environment files, resumes, credentials, and saved personal reports out of source control.
 3. Create a Supabase project and apply `supabase/migrations/202611120001_career_workspace.sql` in SQL Editor. This creates all ten requested tables and their ownership policies. Then apply `supabase/migrations/202611120002_career_tools.sql` to enable transactional interview/roadmap saves and progress updates. Detailed instructions are in [SUPABASE_SETUP.md](SUPABASE_SETUP.md).
 4. Configure your Supabase Auth site URL and app `/auth/callback` redirects for local and production origins. Enable Google with your own Google Cloud OAuth client if desired. Email confirmation and recovery use PKCE and must be opened in the initiating browser.
 5. Import the repository into Vercel, choose the Next.js preset and npm. The default `npm run build` is supported. Do not use a static export: PDF extraction and live AI need Node route handlers.
@@ -87,7 +87,7 @@ No uploaded PDFs are stored. Text exists in request memory and browser component
 
 Only text-based PDFs are supported; no OCR and no password input. PDF parsing is synchronous request work, capped by upload size and deployment timeouts. PDFs over 25 pages are rejected after extraction; unusual files can still exhaust resources, so hosting controls matter. Vercel plan request-size limits may be lower than the app’s 5 MB cap; if uploads are rejected by the platform, use pasted text. Production deployments should align the UI limit with their platform or adopt direct private uploads with immediate deletion.
 
-Supabase accounts and cloud reports are implemented, but the owner must apply the migration and configure email/Google in the dashboard. The supplied public key was accepted by a read-only project check; email confirmation is enabled, Google is disabled, and the tables are not yet applied. Real sign-up/email recovery/OAuth have not been exercised by the agent.
+Supabase accounts and cloud reports are implemented, but the owner must apply the migration and configure email/Google in the dashboard. Run hosted sign-up and password recovery after setting the callback URLs and applying the migrations.
 
 Interview, cover letter and roadmap tools now support live generation, validated output and explicit saves. Apply the second migration before saving interviews or roadmaps. The private dashboard includes saved interview scores; public demo trend data is illustrative. Cloud history returns up to 100 newest items per source. Reports and original resume text are saved separately. JSON and browser print/PDF exports are supported. No external deployment or paid AI call was performed; browser visual QA is unverified.
 
